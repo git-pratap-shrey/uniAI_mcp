@@ -1,0 +1,14 @@
+{
+    "university": "University",
+    "year": {
+        "3": {
+            "semester": {
+                "5": {
+                    "subjects": [
+                        "DBMS"
+                    ]
+                }
+            }
+        }
+    }
+}
