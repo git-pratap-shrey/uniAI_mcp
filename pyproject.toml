@@ -11,10 +11,11 @@ dependencies = [
     "mcp[cli]>=2.2.0",
     "ollama>=0.6.2",
     "pymupdf>=1.28.2",
+    "python-dotenv>=1.2.3",
 ]
 
 [project.scripts]
-uniai-mcp = "uniai_mcp:main"
+uniai-mcp = "uniai_mcp.main:main"
 
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]

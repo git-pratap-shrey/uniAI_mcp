@@ -1,5 +1,10 @@
-from mcp.server import MCPServer
 import logging, sys, json
+from dotenv import load_dotenv
+
+# Load env variables before importing local modules
+load_dotenv()
+
+from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 from .utils import load_syllabus, get_syllabus_path, query_subject_all
 
@@ -58,7 +63,7 @@ Do not claim that material is available if it is not
 listed in `get_availability` tool.
 """
 
-if __name__ == "__main__":
+def main():
     security = TransportSecuritySettings(
         allowed_hosts=[
             "uniai-mcp.git-pratap-shrey.online",
@@ -71,3 +76,6 @@ if __name__ == "__main__":
         port=3001,
         transport_security=security,
     )
+
+if __name__ == "__main__":
+    main()
