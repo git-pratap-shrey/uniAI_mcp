@@ -54,10 +54,10 @@ Purpose:
 - This includes subject-wise and unit-wise notes, previous year questions and current academic syllabus.
 
 Before searching for academic material:
-1. Read `info://availability`.
+1. use 'get_availability()' tool.
 2. Verify that the requested university, year,
    semester, and subject are supported. If unsure, Ask the user for confirmation before proceeding.
-3. Only then use the available search tools.
+3. Only then use the available search tools with the correct subject code.
 
 Do not claim that material is available if it is not
 listed in `get_availability` tool.

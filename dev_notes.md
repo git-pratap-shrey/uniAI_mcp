@@ -5,9 +5,11 @@ run tunnel : cloudflared tunnel run projects
 
 ##
 
-add syllabus migration script;
+<!-- add syllabus migration script; -->
 add pyq support;
 add notes support;
 add rag tools for notes;
 maybe enforce 1 syllabus per subject (later);
 
+
+(lab subjects wont have notes or pqys, but still okay to keep syllabus if a user is just looking for it, the llm can answer from the web if it has the syllabus.)
