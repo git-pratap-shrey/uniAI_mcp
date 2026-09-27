@@ -1,14 +1,18 @@
+import os
 from pathlib import Path
 from typing import Any
 import sqlite3
 
-SYLLABUS_ROOT = Path("resources/syllabus/AKTU")
-# NOTES_ROOT = Path("resources/pyqs/AKTU")
-# PYQ_ROOT = Path("resources/notes/AKTU")
+BASE_DIR = Path(os.environ["BASE_DIR"])
+DB_PATH = Path(os.environ["DB_PATH"])
+
+SYLLABUS_ROOT = Path(os.environ["SYLLABUS_ROOT"])
+# NOTES_ROOT = Path(os.environ["NOTES_ROOT"])
+# PYQ_ROOT = Path(os.environ["PYQ_ROOT"])
 
 
-def get_syllabus_path(code: str) -> Path:
-    connection = sqlite3.connect("app.db")
+def get_syllabus_path(code: str) -> Path | None:
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
     cursor.execute('''
@@ -22,7 +26,7 @@ def get_syllabus_path(code: str) -> Path:
     connection.close()
     
     if not row:
-        raise FileNotFoundError(f"No syllabus found for subject code: {code}")
+        return None
 
     path_in_db = row[0]
 
@@ -32,7 +36,7 @@ def load_syllabus(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 def query_subject_all() -> list[dict[str, Any]]:
-    connection = sqlite3.connect("app.db")
+    connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
 

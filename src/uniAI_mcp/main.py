@@ -19,8 +19,8 @@ def get_syllabus(code: str) -> str:
     """
 
     path = get_syllabus_path(code)
-    if not path.exists():
-        return f"ERROR: Syllabus file missing on disk for subject code {code}."
+    if not path or not path.exists():
+        return f"ERROR: Syllabus missing for subject code {code}."
     
     return load_syllabus(path)
 
