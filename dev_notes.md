@@ -1,4 +1,4 @@
-run inspector : npx @modelcontextprotocol/inspector uv run -m src.uniai_mcp.main
+run inspector : npx @modelcontextprotocol/inspector (add custom streamable http server there directly)
 run project : uv run -m src.uniai_mcp.main
 run tunnel : cloudflared tunnel run projects
 
