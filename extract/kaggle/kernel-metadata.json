@@ -1,0 +1,14 @@
+{
+  "id": "pratapshrey/ocr-test",
+  "title": "OCR Test",
+  "code_file": "ocr.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["pratapshrey/testing"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

@@ -15,3 +15,5 @@ extract/to/
 
 *.db
 .env
+*.pdf
+*.log
