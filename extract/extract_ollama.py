@@ -1,49 +1,63 @@
-import pymupdf
-import ollama
+import base64
+import json
+import logging
 import os
-import logging, sys
+import sys
+from pathlib import Path
 
-logging.basicConfig(
-    level=logging.INFO,
-    stream=sys.stderr,
-)
+import httpx
+import pymupdf
 
+logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger(__name__)
 
-for filename in os.listdir("extract/from"):
-    if not filename.endswith(".pdf"):
-        continue
-    name = filename[:-4]
-    
-    if os.path.exists(f"extract/to/{name}.md"):
-        continue
+GATEWAY   = "http://localhost:8000"
+JOBS_FILE = Path("extract/jobs.json")
+FROM_DIR  = Path("extract/from")
+TO_DIR    = Path("extract/to")
 
-    doc = pymupdf.open(f"extract/from/{name}.pdf")
+TO_DIR.mkdir(parents=True, exist_ok=True)
+jobs = json.loads(JOBS_FILE.read_text()) if JOBS_FILE.exists() else []
 
-    logger.info(f"extracting: {name}.pdf: ")
+with httpx.Client() as client:
+    for filename in sorted(FROM_DIR.iterdir()):
+        if filename.suffix.lower() != ".pdf":
+            continue
+        name = filename.stem
 
-    text = ""
+        if (TO_DIR / f"{name}.md").exists():
+            logger.info(f"Skipping {name}.pdf — already extracted")
+            continue
 
-    for i, page in enumerate(doc, 1):
-        pix = page.get_pixmap()
-        pix.save("/tmp/page.png")
+        doc = pymupdf.open(filename)
+        logger.info(f"Submitting {filename.name} ({len(doc)} pages) …")
 
-        res = ollama.chat(
-            model="gemma4:cloud",
-            messages=[{
-                "role": "user",
-                "content": "Extract all text from this page. return markdown text",
-                "images": ["/tmp/page.png"]
-            }],
-            options={"temperature": 0}
-        )
+        for i, page in enumerate(doc, 1):
+            pix    = page.get_pixmap()
+            b64    = base64.b64encode(pix.tobytes("png")).decode()
 
-        text += f"\n## Page {i}\n\n{res['message']['content']}\n"
+            r = client.post(f"{GATEWAY}/api/async", json={
+                "provider": "ollama_cloud",
+                "model":    "gemma4:cloud",
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Extract all text from this page. Return markdown."},
+                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
+                    ],
+                }],
+                "parameters": {"temperature": 0},
+            }, timeout=15)
+            r.raise_for_status()
 
-        logger.info(f"Completed Page : {i}")
+            job_id = r.json()["job_id"]
+            jobs.append({
+                "job_id": job_id,
+                "pdf_name": name,
+                "page_num": i,
+                "completed": False,
+            })
+            JOBS_FILE.write_text(json.dumps(jobs, indent=2))
+            logger.info(f"  page {i} → {job_id}")
 
-    with open(f"extract/to/{name}.md", "w", encoding="utf-8") as f:
-        f.write(text)
-
-    logger.info(f"completed: {name}.pdf: ")
-    
+logger.info(f"Done. {len(jobs)} job(s) in {JOBS_FILE}. Run poll_results.py to collect.")

@@ -6,7 +6,7 @@ load_dotenv()
 
 from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
-from .utils import load_syllabus, get_syllabus_path, query_subject_all
+from .utils import get_syllabus_path, get_notes_path, get_pyq_paths, query_subject_all
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,28 +20,66 @@ mcp = MCPServer("uniAI")
 @mcp.tool()
 def get_syllabus(code: str) -> str:
     """
-    Fetch the syllabus content for a subject. Checks availability first.
+    Fetch the syllabus content for a subject. Check the availability tool first.
     """
 
     path = get_syllabus_path(code)
     if not path or not path.exists():
         return f"ERROR: Syllabus missing for subject code {code}."
     
-    return load_syllabus(path)
+    return path.read_text(encoding="utf-8")
+
+
+@mcp.tool()
+def get_notes(code: str, unit: int) -> str:
+    """
+    Fetch the academic notes for a subject. Each subject has units 1-5.
+    Check the availability tool first.
+    """
+
+    if unit < 1 or unit > 5:
+        return f"ERROR: Invalid unit {unit}. Valid units are 1-5."
+    
+    path = get_notes_path(code, unit)
+    if not path or not path.exists():
+        return f"ERROR: Notes missing for subject code {code}, unit {unit}."
+    
+    return path.read_text(encoding="utf-8")
+
+
+@mcp.tool()
+def get_pyq(code: str) -> str:
+    """
+    Fetch previous year questions for a subject.
+    Returns all available PYQs with their year labels.
+    Check the availability tool first.
+    """
+
+    paths = get_pyq_paths(code)
+    if not paths:
+        return f"ERROR: Previous year questions missing for subject code {code}."
+    
+    results = []
+    for path, label in paths:
+        if path.exists():
+            content = path.read_text(encoding="utf-8")
+            results.append(f"--- {label} ---\n{content}")
+    
+    if not results:
+        return f"ERROR: Previous year questions missing for subject code {code}."
+    
+    return "\n\n".join(results)
 
 
 @mcp.tool()
 def get_availability() -> str:
-
     """
-        Lists the academic content currently supported by this MCP server.
-        Check this resource before attempting to access university-specific
-        study material.
+    Lists the academic content currently supported by this MCP server.
+    Check this resource before attempting to access university-specific
+    study material.
     """
 
     return json.dumps(query_subject_all())
-
-
 
 
 @mcp.prompt()
@@ -59,9 +97,11 @@ Before searching for academic material:
    semester, and subject are supported. If unsure, Ask the user for confirmation before proceeding.
 3. Only then use the available search tools with the correct subject code.
 
+Notes are organized by units (1-5). PYQs are organized by year with variants indexed (e.g., 2026-0, 2026-1).
 Do not claim that material is available if it is not
 listed in `get_availability` tool.
 """
+
 
 def main():
     security = TransportSecuritySettings(
@@ -76,6 +116,7 @@ def main():
         port=3001,
         transport_security=security,
     )
+
 
 if __name__ == "__main__":
     main()

@@ -12,6 +12,7 @@ wheels/
 data/
 extract/from/
 extract/to/
+extract/jobs.json
 
 *.db
 .env
