@@ -1,3 +1,4 @@
+# Run command: uv run python ingest/migrate_syllabus_all.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv

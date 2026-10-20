@@ -1,3 +1,4 @@
+# Run command: uv run python extract/extract_ollama.py
 import base64
 import json
 import logging

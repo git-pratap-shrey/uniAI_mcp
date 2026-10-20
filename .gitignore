@@ -18,3 +18,4 @@ extract/jobs.json
 .env
 *.pdf
 *.log
+resources/

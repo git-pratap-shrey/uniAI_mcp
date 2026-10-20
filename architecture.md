@@ -50,6 +50,10 @@ ingest/               # Migration and data ingestion scripts
 extract/              # Temporary extraction area for PDF processing
   to/                 # Extracted markdown files (not part of resources)
 
+test/                 # Comprehensive pytest test suites
+  test_*.py           # Verification tests for availability, syllabus, notes, pyqs
+  conftest.py         # Pytest configuration and environment loading
+
 database.db           # SQLite database
 db.sql                # Database schema definition
 .env                  # Environment configuration
@@ -212,15 +216,12 @@ def get_{type}_path(code: str, ...) -> Path | None:
     return RESOURCES_ROOT / path_in_db
 ```
 
-**Existing Functions**:
-- `get_syllabus_path(code: str) -> Path | None`
-- `load_syllabus(path: Path) -> str`
-- `query_subject_all() -> list[dict[str, Any]]`
-
-**Planned Functions**:
-- `get_notes_path(code: str, unit: int) -> Path | None`
-- `get_pyq_paths(code: str) -> list[tuple[Path, str]]`
-- `load_resource(path: Path) -> str` (generic loader)
+**Implemented Functions**:
+- `get_syllabus_path(code: str) -> Path | None`: Queries `resources` table for syllabus file path.
+- `get_notes_path(code: str, unit: int) -> Path | None`: Queries `resources` table for unit notes file path (`label='Unit {unit}'`).
+- `get_pyq_paths(code: str) -> list[tuple[Path, str]]`: Queries `resources` table for all PYQ files and their labels (`label` formatted as `{year}-{index}`).
+- `load_resource(path: Path) -> str`: Generic file loader returning markdown contents encoded as UTF-8.
+- `query_subject_all() -> list[dict[str, Any]]`: Returns all subjects grouped by academic year with available resource types array (`['syllabus', 'notes', 'pyq']`).
 
 ### MCP Tool Pattern (`src/uniai_mcp/main.py`)
 
@@ -237,18 +238,15 @@ def get_{type}(code: str, ...) -> str:
     if not path or not path.exists():
         return f"ERROR: {Type} missing for subject code {code}."
     
-    return load_resource(path)
+    return path.read_text(encoding="utf-8")
 ```
 
-**Existing Tools**:
-- `get_syllabus(code: str) -> str`
-
-**Planned Tools**:
-- `get_notes(code: str, unit: int) -> str` - Unit must be 1-5
-- `get_pyq(code: str) -> str` - Returns all PYQs for the subject
-
-**Supporting Tools**:
-- `get_availability() -> str` - Lists all available subjects and their resource types
+**Implemented Tools**:
+- `get_syllabus(code: str) -> str`: Fetches complete syllabus content for a subject code.
+- `get_notes(code: str, unit: int) -> str`: Fetches notes for a specific unit (1-5) for a subject code.
+- `get_pyq(code: str) -> str`: Fetches all previous year question papers for a subject code, formatted with clear year headers.
+- `get_availability() -> str`: Lists all supported academic years, subjects, codes, and available resource types in JSON format.
+- `uniAI_instructions()` (MCP Prompt): Provides instructions to LLMs on proper tool invocation sequence.
 
 ### Migration Script Pattern (`ingest/migrate_*.py`)
 
@@ -295,21 +293,21 @@ connection.close()
 ## Current Implementation Status
 
 ### ✅ Implemented
-- [x] SQLite database with subjects, sources, resources tables
-- [x] Basic MCP server setup with transport security
-- [x] Syllabus serving functionality
-- [x] `get_syllabus()` tool
-- [x] `get_availability()` tool
-- [x] Initial subject ingestion (8 subjects, year 3)
+- [x] SQLite database with `subjects`, `sources`, `resources` tables
+- [x] Basic MCP server setup with streamable HTTP and transport security
+- [x] Unified resource directory structure (`resources/{university}/{year}/{subject_code}/...`)
+- [x] Syllabus serving functionality (`get_syllabus()` tool)
+- [x] Unit-wise notes serving (`get_notes()` tool for units 1–5)
+- [x] Previous year questions serving (`get_pyq()` tool with year labels)
+- [x] Enhanced availability query and tool (`get_availability()`) showing resource type coverage
+- [x] Initial subject ingestion (8 subjects, Year 3 AKTU) with unified syllabus hierarchy
+- [x] BCS501H ingestion with 5 units of notes (Gateway Classes) and 34 PYQ papers (AKTU, 2016–2026)
+- [x] Migration scripts (`migrate_all_resources.py`, `add_missing_syllabi.py`)
+- [x] Comprehensive pytest test suites (`test/`) with cross-verification of database and disk files
 
-### 🔄 In Progress (see migration.md)
-- [ ] Unified resource directory structure
-- [ ] Notes serving (5 units per subject)
-- [ ] PYQ serving (multiple years/variants)
-- [ ] `get_notes()` tool
-- [ ] `get_pyq()` tool
-- [ ] Enhanced availability query showing resource type coverage
-- [ ] Unified migration script for all resource types
+### 🔄 In Progress
+- [ ] Ingesting notes and PYQs for remaining Year 3 subjects (BCS502IH, BCS503H, BCS054H, BCS055H)
+- [ ] RAG / semantic search tools for long-form notes (optional future addition)
 
 ### 📋 Future Enhancements
 - [ ] Support multiple universities

@@ -1,3 +1,5 @@
+# Run command: uv run python extract/poll_results.py
+# Single sweep: uv run python extract/poll_results.py --once
 """
 poll_results.py
 ===============

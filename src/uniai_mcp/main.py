@@ -1,7 +1,6 @@
+# Run command: uv run -m src.uniai_mcp.main
 import logging, sys, json
 from dotenv import load_dotenv
-
-# Load env variables before importing local modules
 load_dotenv()
 
 from mcp.server import MCPServer

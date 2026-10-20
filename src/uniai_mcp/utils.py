@@ -1,3 +1,4 @@
+# Run tests: uv run pytest
 import os
 from pathlib import Path
 from typing import Any

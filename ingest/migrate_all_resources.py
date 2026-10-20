@@ -1,3 +1,4 @@
+# Run command: uv run python ingest/migrate_all_resources.py
 import os
 from pathlib import Path
 from dotenv import load_dotenv
